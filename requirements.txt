@@ -4,4 +4,5 @@ PyQt5-sip==12.8.0
 PyQt5-stubs==5.14.2.2
 pyqtgraph==0.10.0
 scipy==1.4.1
+sympy==1.6
 

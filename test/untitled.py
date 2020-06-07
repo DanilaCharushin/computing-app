@@ -5,6 +5,7 @@ import numpy as np
 from typing import List
 from pyqtgraph.GraphicsScene.mouseEvents import MouseClickEvent
 import scipy.interpolate as interp
+from sympy import *
 
 
 class SmoothPointNumberError(Exception):
@@ -138,24 +139,31 @@ class MainWindow(QtWidgets.QMainWindow):
         uic.loadUi('untitled.ui', self)
         self.pg: pg.PlotWidget = self.graphWidget
         self.vb: pg.ViewBox = self.pg.plotItem.vb
+
         self.num: QtWidgets.QLabel = self.labelNum
         self.accuracy: QtWidgets.QLabel = self.labelAccuracy
         self.accuracy_slider: QtWidgets.QSlider = self.horizontalSlider
+
         self.approx: QtWidgets.QCheckBox = self.checkBoxApproximate
         self.interp: QtWidgets.QCheckBox = self.checkBoxInterpolate
         self.smooth: QtWidgets.QCheckBox = self.checkBoxSmooth
+        self.show_: QtWidgets.QCheckBox = self.checkBoxShow
+
         self.approx_type: QtWidgets.QSpinBox = self.spinBoxApproximate
         self.interp_type: QtWidgets.QComboBox = self.comboBoxInterpolate
         self.smooth_type: QtWidgets.QComboBox = self.comboBoxSmooth
+
         self.clear_button: QtWidgets.QPushButton = self.pushButtonClear
         self.browse_button: QtWidgets.QPushButton = self.pushButtonBrowse
         self.save_button: QtWidgets.QPushButton = self.pushButtonSave
         self.add_button: QtWidgets.QPushButton = self.pushButtonAdd
+
         self.func: QtWidgets.QLineEdit = self.lineEditFunc
         self.func_a: QtWidgets.QLineEdit = self.lineEditA
         self.func_b: QtWidgets.QLineEdit = self.lineEditB
         self.func_step: QtWidgets.QLineEdit = self.lineEditStep
         self.func_num: QtWidgets.QLineEdit = self.lineEditNum
+
         self.add_x: QtWidgets.QLineEdit = self.lineEditX
         self.add_y: QtWidgets.QLineEdit = self.lineEditY
 
@@ -182,6 +190,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.approx.stateChanged.connect(self.changed_approx)
         self.interp.stateChanged.connect(self.changed_interp)
         self.smooth.stateChanged.connect(self.changed_smooth)
+        self.show_.stateChanged.connect(self.changed_show)
         self.approx_type.valueChanged.connect(self.changed_approx_type)
         self.interp_type.currentIndexChanged.connect(self.changed_interp_type)
         self.smooth_type.currentIndexChanged.connect(self.changed_smooth_type)
@@ -189,6 +198,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.browse_button.pressed.connect(self.pressed_button_browse)
         self.save_button.pressed.connect(self.pressed_button_save)
         self.add_button.pressed.connect(self.pressed_button_add)
+        self.func.textChanged.connect(self.func_changed)
+        self.func_a.textChanged.connect(self.func_a_changed)
+        self.func_b.textChanged.connect(self.func_b_changed)
+        self.func_step.textChanged.connect(self.func_step_changed)
+        self.func_num.textChanged.connect(self.func_num_changed)
 
     def mouse_moved(self, event):
         point = self.vb.mapSceneToView(event)
@@ -221,6 +235,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def changed_smooth(self):
         self.plot()
 
+    def changed_show(self):
+        self.plot()
+
     def changed_approx_type(self):
         self.plot()
 
@@ -229,6 +246,39 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def changed_smooth_type(self):
         self.plot()
+
+    def func_changed(self):
+        self.plot()
+
+    def func_a_changed(self):
+        self.func_step_changed()
+        self.plot()
+
+    def func_b_changed(self):
+        self.func_step_changed()
+        self.plot()
+
+    def func_step_changed(self):
+        try:
+            a = float(self.func_a.text())
+            b = float(self.func_b.text())
+            step = float(self.func_step.text())
+            self.func_num.setText(str(int((b - a) / step)))
+            self.plot()
+        except Exception as ex:
+            print(ex)
+            pass
+
+    def func_num_changed(self):
+        try:
+            a = float(self.func_a.text())
+            b = float(self.func_b.text())
+            num = int(self.func_num.text())
+            self.func_step.setText(str((b - a) / num))
+            self.plot()
+        except Exception as ex:
+            print(ex)
+            pass
 
     def pressed_button_clear(self):
         self.clear_legend()
@@ -263,7 +313,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def slider_changed(self):
         accuracy = self.accuracy_slider.value()
         self.accuracy.setText("Accuracy: {0}".format(accuracy))
-        self.vb.setLimits(minXRange=1/10**accuracy, minYRange=1/10**accuracy)
+        self.vb.setLimits(minXRange=1 / 10 ** accuracy, minYRange=1 / 10 ** accuracy)
         self.data.set_accuracy(accuracy)
 
     def clear_legend(self):
@@ -300,6 +350,23 @@ class MainWindow(QtWidgets.QMainWindow):
             smooth_y = Algorithms.Smoothing.smooth(self.data.y(), n)
             pp = self.pg.plot(self.data.x(), smooth_y, pen=pg.mkPen(color=(255, 0, 255)))
             self.legend.addItem(pp, "smooth points")
+
+        if self.show_.isChecked():
+            try:
+                x = symbols('x')
+                f = sympify(self.func.text())
+                a = float(self.func_a.text())
+                b = float(self.func_b.text())
+                num = int(self.func_num.text())
+                X = np.linspace(a, b, num)
+                Y = []
+                for arg in X:
+                    Y.append(float(f.evalf(subs={x: arg})))
+                pp = self.pg.plot(X, Y, pen=pg.mkPen(color=(255, 50, 100)))
+                self.legend.addItem(pp, "function")
+            except Exception as ex:
+                print(ex)
+                pass
 
         pp = self.pg.plot(self.data.x(), self.data.y(), pen=None, symbol='o', symbolSize=5, symbolBrush=('b'))
         self.legend.addItem(pp, "basic points")
