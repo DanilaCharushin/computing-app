@@ -476,28 +476,28 @@ class MainWindow(QtWidgets.QMainWindow):
     def pressed_button_browse(self):
         try:
             file = QtWidgets.QFileDialog.getOpenFileName()[0]
+            self.clear_legend()
+            self.data.remove_all()
+            with open(file) as f:
+                line = f.readline()
+                if line.startswith("FUNC"):
+                    line = f.readline()
+                    self.func_text.setText(line.rstrip())
+                    line = f.readline()
+                    self.func_a.setText(line.rstrip())
+                    line = f.readline()
+                    self.func_b.setText(line.rstrip())
+                    line = f.readline()
+                    self.func_step.setText(line.rstrip())
+                    line = f.readline()
+                    self.func_num.setText(line.rstrip())
+                    line = f.readline()
+                while line:
+                    x, y = map(float, line.split())
+                    self.data.append(Point(x, y))
+                    line = f.readline()
         except Exception as ex:
             self.log(ex)
-        self.clear_legend()
-        self.data.remove_all()
-        with open(file) as f:
-            line = f.readline()
-            if line.startswith("FUNC"):
-                line = f.readline()
-                self.func_text.setText(line.rstrip())
-                line = f.readline()
-                self.func_a.setText(line.rstrip())
-                line = f.readline()
-                self.func_b.setText(line.rstrip())
-                line = f.readline()
-                self.func_step.setText(line.rstrip())
-                line = f.readline()
-                self.func_num.setText(line.rstrip())
-                line = f.readline()
-            while line:
-                x, y = map(float, line.split())
-                self.data.append(Point(x, y))
-                line = f.readline()
         self.changed_points_lines()
         self.changed_func_lines()
         self.plot()
@@ -505,18 +505,18 @@ class MainWindow(QtWidgets.QMainWindow):
     def pressed_button_save(self):
         try:
             file = QtWidgets.QFileDialog.getSaveFileName()[0]
+            with open(file, 'w') as f:
+                if self.func_text.text() != "":
+                    f.write("FUNC\n")
+                    f.write(self.func_text.text() + "\n")
+                    f.write(self.func_a.text() + "\n")
+                    f.write(self.func_b.text() + "\n")
+                    f.write(self.func_step.text() + "\n")
+                    f.write(self.func_num.text() + "\n")
+                for p in self.data:
+                    f.write("%f %f\n" % (p.x, p.y))
         except Exception as ex:
             self.log(ex)
-        with open(file, 'w') as f:
-            if self.func_text.text() != "":
-                f.write("FUNC\n")
-                f.write(self.func_text.text() + "\n")
-                f.write(self.func_a.text() + "\n")
-                f.write(self.func_b.text() + "\n")
-                f.write(self.func_step.text() + "\n")
-                f.write(self.func_num.text() + "\n")
-            for p in self.data:
-                f.write("%f %f\n" % (p.x, p.y))
 
     def pressed_button_add_point(self):
         x = float(self.add_x.text())
