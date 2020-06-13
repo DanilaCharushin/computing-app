@@ -100,8 +100,8 @@ class Algorithms(object):
 
 class Point(object):
     def __init__(self, x, y):
-        self.x = round(x, 3)
-        self.y = round(y, 3)
+        self.x = x
+        self.y = y
 
     def __str__(self):
         return "Point(" + str(self.x) + ";" + str(self.y) + ")"
@@ -220,7 +220,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.func_lines = QtWidgets.QCheckBox = self.checkBoxFuncLines
         self.points_lines = QtWidgets.QCheckBox = self.checkBoxPointsLines
 
-        self.data =  Data()
+        self.data = Data()
         self.pg.setTitle("Computing App")
         self.pg.showGrid(x=True, y=True)
         self.pg.setLabel("bottom", "X")
@@ -309,14 +309,17 @@ class MainWindow(QtWidgets.QMainWindow):
             try:
                 if self.radioButtonSimps.isChecked():
                     self.integral_points_value.setText(
-                        "Value: {0}".format(round(Algorithms.Integration.integrate(self.data.x(), self.data.y(), "simps"),
-                                                  self.accuracy_slider.value())))
+                        "Value: {0}".format(
+                            round(Algorithms.Integration.integrate(self.data.x(), self.data.y(), "simps"),
+                                  self.accuracy_slider.value())))
                 else:
                     self.integral_points_value.setText(
-                        "Value: {0}".format(round(Algorithms.Integration.integrate(self.data.x(), self.data.y(), "trapz"),
-                                                  self.accuracy_slider.value())))
+                        "Value: {0}".format(
+                            round(Algorithms.Integration.integrate(self.data.x(), self.data.y(), "trapz"),
+                                  self.accuracy_slider.value())))
             except Exception as ex:
                 self.log(ex)
+
     def pressed_button_clear_log(self):
         self.logger.setText("")
 
@@ -332,7 +335,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def changed_func_lines(self):
         try:
-            if self.func_lines.isChecked() and (self.func.isChecked() or self.deriv.isChecked() or self.integral.isChecked()):
+            if self.func_lines.isChecked() and (
+                    self.func.isChecked() or self.deriv.isChecked() or self.integral.isChecked()):
                 self.func_aline.setPos(float(self.func_a.text()))
                 self.func_bline.setPos(float(self.func_b.text()))
                 self.vb.addItem(self.func_aline)
@@ -631,7 +635,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 if self.integral.isChecked():
                     x, f, a, b, num = self.get_func()
                     self.integral_text.setText(str(f.integrate(x)))
-                    self.integral_value.setText("Value: {0}".format(round(float(integrate(f, (x, a, b))), self.accuracy_slider.value())))
+                    self.integral_value.setText(
+                        "Value: {0}".format(round(float(integrate(f, (x, a, b))), self.accuracy_slider.value())))
                     X = np.linspace(a, b, num)
                     Y = []
                     for arg in X:
