@@ -40,6 +40,7 @@ class Algorithms(object):
             else:
                 return interp.interp1d(x, y, kind=kind)
 
+        @staticmethod
         def interpolate(x: List[float], y: List[float], n: int) -> callable:
             return interp.UnivariateSpline(x, y, s=0, k=n)
 
