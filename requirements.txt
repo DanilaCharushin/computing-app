@@ -1,6 +1,6 @@
 altgraph==0.17
 mpmath==1.1.0
-numpy==1.18.4
+numpy==1.22.0
 PyInstaller==3.6
 PyQt5==5.15.0
 PyQt5-sip==12.8.0
